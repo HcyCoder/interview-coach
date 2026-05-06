@@ -14,12 +14,12 @@ frontend/dist/
 frontend/.turbo/
 
 # Python
-ai-service/.venv/
-ai-service/__pycache__/
-ai-service/.pytest_cache/
-ai-service/.mypy_cache/
-ai-service/*.pyc
-ai-service/*.pyo
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+**/.mypy_cache/
+**/*.pyc
+**/*.pyo
 
 # Local env
 .env
@@ -28,4 +28,3 @@ ai-service/*.pyo
 
 # Logs
 *.log
-
