@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from app.api.resume import router as resume_router
 from app.api.health import router as health_router
 
 
@@ -17,6 +18,7 @@ def create_app() -> FastAPI:
         redoc_url="/redoc",
     )
     app.include_router(health_router)
+    app.include_router(resume_router)
     return app
 
 
