@@ -13,9 +13,11 @@ type Config struct {
 	ServerAddr        string
 	LogLevel          string
 	DBDSN             string
+	AIServiceBaseURL  string
 	DBMaxOpenConns    int
 	DBMaxIdleConns    int
 	DBConnMaxLifetime time.Duration
+	DefaultUserID     uint
 }
 
 // Load reads environment variables and returns the parsed runtime configuration.
@@ -27,9 +29,11 @@ func Load() (Config, error) {
 	cfg := Config{
 		ServerAddr:        getEnvOrDefault("SERVER_ADDR", ":8080"),
 		LogLevel:          getEnvOrDefault("LOG_LEVEL", "info"),
+		AIServiceBaseURL:  getEnvOrDefault("AI_SERVICE_BASE_URL", "http://127.0.0.1:8000"),
 		DBMaxOpenConns:    10,
 		DBMaxIdleConns:    10,
 		DBConnMaxLifetime: 30 * time.Minute,
+		DefaultUserID:     1,
 	}
 
 	cfg.DBDSN = os.Getenv("DB_DSN")
@@ -59,6 +63,14 @@ func Load() (Config, error) {
 			return Config{}, fmt.Errorf("parse DB_CONN_MAX_LIFETIME: %w", err)
 		}
 		cfg.DBConnMaxLifetime = parsed
+	}
+
+	if value := os.Getenv("DEFAULT_USER_ID"); value != "" {
+		parsed, err := strconv.ParseUint(value, 10, 64)
+		if err != nil {
+			return Config{}, fmt.Errorf("parse DEFAULT_USER_ID: %w", err)
+		}
+		cfg.DefaultUserID = uint(parsed)
 	}
 
 	return cfg, nil

@@ -2,14 +2,19 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/cloudwego/hertz/pkg/common/adaptor"
 
+	"interview-coach/backend/internal/ai"
 	"interview-coach/backend/internal/config"
 	"interview-coach/backend/internal/db"
 	"interview-coach/backend/internal/handler"
+	"interview-coach/backend/internal/httpapi"
 	"interview-coach/backend/internal/logging"
+	"interview-coach/backend/internal/session"
 )
 
 // main bootstraps the Hertz backend service.
@@ -40,9 +45,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	aiClient := ai.NewClient(cfg.AIServiceBaseURL)
+	sessionStore := session.NewGormStore(database)
+	sessionService := session.NewService(sessionStore, aiClient, session.Options{
+		DefaultUserID: cfg.DefaultUserID,
+	})
+	sessionHandler := httpapi.NewSessionHandler(sessionService)
+
 	h := server.Default(server.WithHostPorts(cfg.ServerAddr))
 	h.GET("/health", handler.Health)
 	h.NoRoute(handler.NewNotFoundHandler(logger).Handle)
+	h.POST("/api/sessions", adaptor.HertzHandler(http.HandlerFunc(sessionHandler.CreateSession)))
+	h.POST("/api/sessions/:id/chat", adaptor.HertzHandler(http.HandlerFunc(sessionHandler.ChatSession)))
 
 	logger.Info().Str("addr", cfg.ServerAddr).Msg("backend server starting")
 
